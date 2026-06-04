@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Хабза-Пром | Регистрация</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --card-dark: #161616;
+            --gold: #ffcc00;
+            --gold-dark: #b8860b;
+            --text-light: #f5f5f5;
+            --text-gray: #888;
+        }
+
+        body {
+            font-family: -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #registration-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .logo-big {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 40px;
+            text-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+        }
+
+        .role-card {
+            background: var(--card-dark);
+            border: 1px solid #333;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .role-card:active { transform: scale(0.95); }
+
+        .role-card.selected {
+            border-color: var(--gold);
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.1);
+        }
+
+        .role-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .role-desc { font-size: 13px; color: var(--text-gray); }
+
+        #main-interface { display: none; }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #222;
+            margin-bottom: 20px;
+        }
+
+        .admin-badge {
+            background: #ff3333;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(255, 51, 51, 0.4);
+        }
+
+        .gold-btn {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #000;
+            border: none;
+            padding: 18px;
+            width: 100%;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .order-card {
+            background: var(--card-dark);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--gold);
+        }
+
+        .status-wait { color: #ffa500; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="registration-screen">
+        <div class="logo-big">ХАБЗА-ПРОМ</div>
+        
+        <div class="role-card" onclick="selectRole('customer')">
+            <span class="role-title">🛒 ПОКУПАТЕЛЬ</span>
+            <span class="role-desc">Хочу заказать еду или товары</span>
+        </div>
+
+        <div class="role-card" onclick="selectRole('runner')">
+            <span class="role-title">🏃 БЕГУН (18+)</span>
+            <span class="role-desc">Хочу зарабатывать на доставке</span>
+        </div>
+
+        <button class="gold-btn" onclick="finishRegistration()">ВОЙТИ В СИСТЕМУ</button>
+        
+        <!-- Сверхсекретная область для админа (просто пустой невидимый блок) -->
+        <div onclick="adminLogin()" style="height: 50px; width: 100%; margin-top: 20px; cursor: default;"></div>
+    </div>
+
+    <div id="main-interface">
+        <div class="header">
+            <span id="user-role-display" style="font-weight: bold; color: var(--gold);">Роль: Покупатель</span>
+            <span id="admin-tag" class="admin-badge" style="display:none;">ГЛАВНЫЙ БОСС</span>
+        </div>
+
+        <div id="customer-view" style="display:none;">
+            <div class="role-card">
+                <h3>🛍️ Новый заказ</h3>
+                <input type="text" id="order-input" placeholder="Что купить?">
+                <input type="text" id="place-input" placeholder="Куда принести?">
+                <button class="gold-btn" onclick="sendOrder()">ОТПРАВИТЬ</button>
+            </div>
+        </div>
+
+        <div id="runner-view" style="display:none;">
+            <h3>📋 Заказы в работе</h3>
+            <div id="orders-list">
+                <div class="order-card">
+                    <span class="status-wait">● ОЖИДАЕТ</span>
+                    <p>Кола 0.5, Чипсы. <br><small>Ауд. 204. Профит: 80р.</small></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin-view" style="display:none;">
+            <h3>⚙️ Админ-панель</h3>
+            <div class="order-card" style="border-left-color: #ff3333;">
+                <p>Баланс системы: 1 450 ₽</p>
+                <button class="gold-btn" style="background: red; color: white;">ВЫКЛЮЧИТЬ СЕРВИС</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRole = '';
+        let isAdmin = false;
+
+        // Хеш твоего пароля (его нельзя "расшифровать" обратно простым взглядом)
+        const SECRET_HASH = "e2697a55225333f2214436573f08c35b62b1b22e705b63750860550478052525";
+
+        async function hash(string) {
+            const utf8 = new TextEncoder().encode(string);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function selectRole(role) {
+            currentRole = role;
+            document.querySelectorAll('.role-card').forEach(card => card.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+
+        async function adminLogin() {
+            let pass = prompt("Доступ ограничен. Введите ключ:");
+            if (pass) {
+                const userHash = await hash(pass);
+                if (userHash === SECRET_HASH) {
+                    isAdmin = true;
+                    currentRole = 'admin';
+                    finishRegistration();
+                } else {
+                    alert("Ошибка доступа.");
+                }
+            }
+        }
+
+        function finishRegistration() {
+            if (!currentRole) return alert("Выберите роль!");
+            document.getElementById('registration-screen').style.display = 'none';
+            document.getElementById('main-interface').style.display = 'block';
+            
+            if (isAdmin) {
+                document.getElementById('admin-tag').style.display = 'block';
+                document.getElementById('admin-view').style.display = 'block';
+                document.getElementById('user-role-display').innerText = 'Управление';
+            } else if (currentRole === 'customer') {
+                document.getElementById('customer-view').style.display = 'block';
+            } else {
+                document.getElementById('runner-view').style.display = 'block';
+            }
+        }
+
+        function sendOrder() { alert("Отправлено!"); }
+    </script>
+</body>
+</html>
