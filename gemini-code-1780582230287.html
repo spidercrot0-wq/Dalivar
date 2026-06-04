@@ -3,225 +3,494 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Хабза-Пром | Регистрация</title>
+    <title>Хабза-Пром | Premium Crimson</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-dark: #0a0a0a;
-            --card-dark: #161616;
-            --gold: #ffcc00;
-            --gold-dark: #b8860b;
-            --text-light: #f5f5f5;
-            --text-gray: #888;
+            --bg-dark: #0a0104;
+            --card-dark: #150207;
+            --crimson: #dc143c;
+            --crimson-glow: rgba(220, 20, 60, 0.4);
+            --text-light: #fff5f5;
+            --text-gray: #a68f95;
+            --input-bg: #20030a;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+
         body {
-            font-family: -apple-system, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-light);
             margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
+            padding: 16px;
             min-height: 100vh;
-        }
-
-        #registration-screen {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            flex-grow: 1;
+        }
+
+        .screen { display: none; flex-direction: column; flex-grow: 1; animation: fadeIn 0.3s ease-in-out; }
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .logo {
             text-align: center;
-        }
-
-        .logo-big {
-            font-size: 32px;
+            font-size: 34px;
             font-weight: 900;
-            color: var(--gold);
-            text-transform: uppercase;
+            color: var(--crimson);
             letter-spacing: 3px;
-            margin-bottom: 40px;
-            text-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+            margin: 25px 0 5px 0;
+            text-shadow: 0 0 25px var(--crimson-glow);
         }
 
+        .tagline { text-align: center; color: var(--text-gray); font-size: 12px; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
+
+        label { font-size: 13px; color: var(--text-gray); margin-bottom: 6px; display: block; font-weight: 500; }
+        
+        input, textarea, select {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid #4a0f1a;
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--crimson); box-shadow: 0 0 10px var(--crimson-glow); }
+
+        .role-group { display: flex; gap: 12px; margin-bottom: 16px; }
         .role-card {
+            flex: 1;
             background: var(--card-dark);
-            border: 1px solid #333;
-            padding: 25px;
-            border-radius: 20px;
-            margin-bottom: 20px;
+            border: 1px solid #3a0813;
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all 0.2s ease;
+        }
+        .role-card.selected { border-color: var(--crimson); box-shadow: 0 0 15px var(--crimson-glow); background: #25040d; }
+        .role-title { font-size: 15px; font-weight: bold; color: var(--crimson); display: block; margin-bottom: 4px; }
+        .role-desc { font-size: 11px; color: var(--text-gray); }
+
+        #age-verification-box {
+            background: #250209;
+            border: 1px dashed var(--crimson);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: none;
+            animation: fadeIn 0.2s ease-in-out;
         }
 
-        .role-card:active { transform: scale(0.95); }
-
-        .role-card.selected {
-            border-color: var(--gold);
-            box-shadow: 0 0 20px rgba(255, 204, 0, 0.1);
-        }
-
-        .role-title {
-            font-size: 20px;
+        .crimson-btn {
+            background: var(--crimson);
+            color: white;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            border-radius: 12px;
+            font-size: 16px;
             font-weight: bold;
-            color: var(--gold);
-            display: block;
-            margin-bottom: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);
+        }
+        .crimson-btn:active { transform: scale(0.98); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: var(--card-dark);
+            border: 1px solid var(--crimson);
+            padding: 24px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
         }
 
-        .role-desc { font-size: 13px; color: var(--text-gray); }
-
-        #main-interface { display: none; }
-
-        .header {
+        .main-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding-bottom: 15px;
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid #3a0813;
             margin-bottom: 20px;
         }
-
-        .admin-badge {
-            background: #ff3333;
-            color: white;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 6px;
-            text-transform: uppercase;
-            box-shadow: 0 0 10px rgba(255, 51, 51, 0.4);
+        
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .gold-btn {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            color: #000;
-            border: none;
-            padding: 18px;
-            width: 100%;
-            border-radius: 15px;
-            font-size: 16px;
+        /* Кнопка Профиля / Выхода */
+        .profile-logout-btn {
+            background: #20030a;
+            border: 1px solid #4a0f1a;
+            color: var(--text-light);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12px;
             font-weight: bold;
-            margin-top: 10px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .profile-logout-btn:active {
+            transform: scale(0.95);
+            border-color: var(--crimson);
         }
 
-        .order-card {
+        .badge { background: var(--crimson); padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; text-transform: uppercase; width: max-content; }
+
+        .receipt {
+            background: #fff;
+            color: #000;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 18px;
+            border-radius: 8px;
+            margin-top: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .receipt-line { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
+
+        .order-monitor {
             background: var(--card-dark);
-            border-radius: 15px;
+            border: 1px solid #3a0813;
             padding: 15px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--gold);
+            border-radius: 12px;
+            margin-bottom: 12px;
         }
 
-        .status-wait { color: #ffa500; font-size: 12px; font-weight: bold; }
+        .admin-link {
+            text-align: center;
+            font-size: 11px;
+            color: #25040d;
+            margin-top: auto;
+            padding: 15px 0;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .admin-link:hover { color: var(--crimson); }
     </style>
 </head>
 <body>
 
-    <div id="registration-screen">
-        <div class="logo-big">ХАБЗА-ПРОМ</div>
-        
-        <div class="role-card" onclick="selectRole('customer')">
-            <span class="role-title">🛒 ПОКУПАТЕЛЬ</span>
-            <span class="role-desc">Хочу заказать еду или товары</span>
+    <!-- ЭКРАН 1: РЕГИСТРАЦИЯ -->
+    <div id="screen-auth" class="screen active">
+        <div class="logo">ХАБЗА-ПРОМ</div>
+        <div class="tagline">Crimson Premium System</div>
+
+        <label>Ваше имя / Никнейм:</label>
+        <input type="text" id="user-name" placeholder="Введите имя">
+
+        <label>Номер учебной группы:</label>
+        <input type="text" id="user-group" placeholder="Например: 204, 315">
+
+        <label>Кем вы хотите быть?</label>
+        <div class="role-group">
+            <div class="role-card" id="card-customer" onclick="selectRole('customer')">
+                <span class="role-title">🛒 Покупатель</span>
+                <span class="role-desc">Заказать товары</span>
+            </div>
+            <div class="role-card" id="card-runner" onclick="selectRole('runner')">
+                <span class="role-title">🏃 Бегун</span>
+                <span class="role-desc">Доставка (18+)</span>
+            </div>
         </div>
 
-        <div class="role-card" onclick="selectRole('runner')">
-            <span class="role-title">🏃 БЕГУН (18+)</span>
-            <span class="role-desc">Хочу зарабатывать на доставке</span>
+        <!-- Блок проверки возраста курьера -->
+        <div id="age-verification-box">
+            <label style="color: #ff4757;">⚠️ Требуется подтверждение 18+ :</label>
+            <input type="number" id="birth-year" placeholder="Укажите ваш год рождения (ГГГГ)">
         </div>
 
-        <button class="gold-btn" onclick="finishRegistration()">ВОЙТИ В СИСТЕМУ</button>
+        <button class="crimson-btn" onclick="handleRegistration()">ЗАВЕРШИТЬ РЕГИСТРАЦИЮ</button>
         
-        <!-- Сверхсекретная область для админа (просто пустой невидимый блок) -->
-        <div onclick="adminLogin()" style="height: 50px; width: 100%; margin-top: 20px; cursor: default;"></div>
+        <div class="admin-link" onclick="ownerLogin()">[ Вход для администрации ]</div>
     </div>
 
-    <div id="main-interface">
-        <div class="header">
-            <span id="user-role-display" style="font-weight: bold; color: var(--gold);">Роль: Покупатель</span>
-            <span id="admin-tag" class="admin-badge" style="display:none;">ГЛАВНЫЙ БОСС</span>
+    <!-- ЭКРАН 2: ИНТЕРФЕЙС ПОКУПАТЕЛЯ -->
+    <div id="screen-customer" class="screen">
+        <div class="main-header">
+            <div class="header-left">
+                <span id="welcome-customer" style="font-weight: bold; color: var(--crimson);">🛒 ЗАКАЗ</span>
+                <span class="badge">Ближайший магазин</span>
+            </div>
+            <!-- Иконка профиля / Выход -->
+            <button class="profile-logout-btn" onclick="logoutAccount()">👤 Выйти</button>
         </div>
 
-        <div id="customer-view" style="display:none;">
-            <div class="role-card">
-                <h3>🛍️ Новый заказ</h3>
-                <input type="text" id="order-input" placeholder="Что купить?">
-                <input type="text" id="place-input" placeholder="Куда принести?">
-                <button class="gold-btn" onclick="sendOrder()">ОТПРАВИТЬ</button>
+        <label>Что необходимо купить? (Список и количество):</label>
+        <textarea id="products-input" placeholder="Пример: 1х Кола 0.5, 2х пачки сухариков..." rows="3"></textarea>
+
+        <label>Примерная стоимость товаров (BYN):</label>
+        <input type="number" id="food-price" placeholder="0.00" step="0.1">
+
+        <label>С какой купюры подготовить сдачу? (Если под расчет — оставьте пустым):</label>
+        <input type="number" id="cash-change" placeholder="Например: 5, 10, 20">
+
+        <label>Метод расчета:</label>
+        <select id="payment-method">
+            <option value="Наличные">Наличные деньги</option>
+            <option value="Карта (Перевод)">Карта (Быстрый перевод)</option>
+        </select>
+
+        <button class="crimson-btn" onclick="generateReceipt()">РАССЧИТАТЬ СТОИМОСТЬ И ЧЕК</button>
+
+        <div id="receipt-container" style="display:none;">
+            <div class="receipt" id="final-receipt"></div>
+            <p style="font-size:11px; color:var(--text-gray); text-align:center; margin-top:10px;">
+                После нажатия заказ будет отправлен в чат доступным бегунам.
+            </p>
+            <button class="crimson-btn" style="margin-top:5px; background: #2ed573; box-shadow: 0 4px 15px rgba(46, 213, 115, 0.3);" onclick="sendOrderToBot()">ПОДТВЕРДИТЬ И ОТПРАВИТЬ ЗАКАЗ</button>
+        </div>
+    </div>
+
+    <!-- ЭКРАН 3: ИНТЕРФЕЙС БЕГУНА -->
+    <div id="screen-runner" class="screen">
+        <div class="main-header">
+            <div class="header-left">
+                <span id="welcome-runner" style="font-weight: bold; color: var(--crimson);">🏃 КУРЬЕР</span>
+                <span class="badge" style="background:#2ed573;">Активен</span>
+            </div>
+            <!-- Иконка профиля / Выход -->
+            <button class="profile-logout-btn" onclick="logoutAccount()">👤 Выйти</button>
+        </div>
+        <p style="color: var(--text-gray); text-align: center; font-size: 14px; line-height: 1.5;">
+            Регистрация успешна! Теперь закрой приложение. Свежие заказы с деталями и суммами будут мгновенно прилетать прямо тебе в личку бота.
+        </p>
+        <div class="role-card" style="border-left: 4px solid var(--crimson); text-align: left; background: #1a0309;">
+            <span class="role-title" style="font-size:14px;">Статус профиля: Верифицирован</span>
+            <p style="margin:5px 0 0 0; font-size:12px; color:var(--text-gray);">Сервис доставки: 1.00 BYN с каждого заказа капает тебе.</p>
+        </div>
+    </div>
+
+    <!-- ЭКРАН 4: ПАНЕЛЬ ВЛАДЕЛЬЦА (АДМИН) -->
+    <div id="screen-owner" class="screen">
+        <div class="main-header">
+            <span style="font-weight: bold; color: var(--crimson);">👑 МОНИТОРИНГ СИСТЕМЫ</span>
+            <button class="profile-logout-btn" onclick="logoutAccount()">🚪 Выйти</button>
+        </div>
+        
+        <h3 style="font-size: 16px; margin-bottom: 10px;">Лента активных заказов колледжа:</h3>
+        <div id="admin-orders-list">
+            <div class="order-monitor">
+                <span style="color: gold; font-size: 12px; font-weight: bold;">● ОБРАБАТЫВАЕТСЯ</span>
+                <p style="font-size: 13px; margin: 5px 0 0 0; color: var(--text-gray);">
+                    Заказчик: Димон (Гр. 201) <br>
+                    Что: Чипсы Lays, Энергетик <br>
+                    Сумма: 6.50 BYN
+                </p>
             </div>
         </div>
+    </div>
 
-        <div id="runner-view" style="display:none;">
-            <h3>📋 Заказы в работе</h3>
-            <div id="orders-list">
-                <div class="order-card">
-                    <span class="status-wait">● ОЖИДАЕТ</span>
-                    <p>Кола 0.5, Чипсы. <br><small>Ауд. 204. Профит: 80р.</small></p>
-                </div>
-            </div>
-        </div>
-
-        <div id="admin-view" style="display:none;">
-            <h3>⚙️ Админ-панель</h3>
-            <div class="order-card" style="border-left-color: #ff3333;">
-                <p>Баланс системы: 1 450 ₽</p>
-                <button class="gold-btn" style="background: red; color: white;">ВЫКЛЮЧИТЬ СЕРВИС</button>
-            </div>
+    <!-- МОДАЛКА: ПРАВИЛА БЕГУНА -->
+    <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:var(--crimson); margin-top:0; font-size: 18px;">📋 СВОД ПРАВИЛ КУРЬЕРА</h3>
+            <p style="font-size:13px; color:var(--text-gray); line-height: 1.5;">
+                1. Обязательно брать бумажный чек в магазине.<br>
+                2. Если у покупателя рассчитана сдача — вернуть её до копейки.<br>
+                3. Фиксированная оплата за твои ноги: 1.00 BYN.<br>
+                4. Доставить строго в течение текущей перемены.
+            </p>
+            <button class="crimson-btn" onclick="acceptRules()">Я ОБЯЗУЮСЬ СОБЛЮДАТЬ</button>
         </div>
     </div>
 
     <script>
-        let currentRole = '';
-        let isAdmin = false;
+        const tg = window.Telegram?.WebApp;
+        if (tg) tg.expand();
 
-        // Хеш твоего пароля (его нельзя "расшифровать" обратно простым взглядом)
-        const SECRET_HASH = "e2697a55225333f2214436573f08c35b62b1b22e705b63750860550478052525";
-
-        async function hash(string) {
-            const utf8 = new TextEncoder().encode(string);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
+        let selectedRole = '';
+        let globalUserData = { name: '', group: '', ageVerified: false };
 
         function selectRole(role) {
-            currentRole = role;
-            document.querySelectorAll('.role-card').forEach(card => card.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+            selectedRole = role;
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`card-${role}`).classList.add('selected');
+            
+            const ageBox = document.getElementById('age-verification-box');
+            if (role === 'runner') {
+                ageBox.style.display = 'block';
+            } else {
+                ageBox.style.display = 'none';
+            }
         }
 
-        async function adminLogin() {
-            let pass = prompt("Доступ ограничен. Введите ключ:");
-            if (pass) {
-                const userHash = await hash(pass);
-                if (userHash === SECRET_HASH) {
-                    isAdmin = true;
-                    currentRole = 'admin';
-                    finishRegistration();
-                } else {
-                    alert("Ошибка доступа.");
+        function handleRegistration() {
+            const name = document.getElementById('user-name').value.trim();
+            const group = document.getElementById('user-group').value.trim();
+
+            if (!name || !group) return alert("Пожалуйста, заполните Имя и Номер группы!");
+            if (!selectedRole) return alert("Выберите вашу роль (Покупатель или Бегун)!");
+
+            globalUserData.name = name;
+            globalUserData.group = group;
+
+            if (selectedRole === 'runner') {
+                const birthYear = parseInt(document.getElementById('birth-year').value);
+                const currentYear = 2026; 
+                const age = currentYear - birthYear;
+
+                if (!birthYear || birthYear > currentYear || birthYear < 1900) {
+                    return alert("Введите корректный год рождения!");
+                }
+
+                if (age < 18) {
+                    return alert(`Регистрация отклонена! Вам только ${age} лет. Работа бегуном разрешена строго с 18 лет!`);
+                }
+                
+                globalUserData.ageVerified = true;
+                document.getElementById('rules-modal').style.display = 'flex';
+            } else {
+                document.getElementById('welcome-customer').innerText = `🛒 ЗАКАЗ: ${name} (${group})`;
+                switchScreen('screen-customer');
+            }
+        }
+
+        function acceptRules() {
+            document.getElementById('rules-modal').style.display = 'none';
+            document.getElementById('welcome-runner').innerText = `🏃 КУРЬЕР: ${globalUserData.name}`;
+            switchScreen('screen-runner');
+        }
+
+        // Функция выхода из аккаунта / разлогина
+        function logoutAccount() {
+            if (confirm("Вы уверены, что хотите выйти из профиля? Сведения формы будут сброшены.")) {
+                // Очищаем глобальный объект данных
+                globalUserData = { name: '', group: '', ageVerified: false };
+                selectedRole = '';
+                
+                // Очищаем визуальные инпуты регистрации
+                document.getElementById('user-name').value = '';
+                document.getElementById('user-group').value = '';
+                document.getElementById('birth-year').value = '';
+                
+                // Сбрасываем выбранные карточки ролей
+                document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+                document.getElementById('age-verification-box').style.display = 'none';
+                
+                // Скрываем прошлый чек
+                document.getElementById('receipt-container').style.display = 'none';
+                document.getElementById('products-input').value = '';
+                document.getElementById('food-price').value = '';
+                document.getElementById('cash-change').value = '';
+                
+                // Возвращаем на экран авторизации
+                switchScreen('screen-auth');
+            }
+        }
+
+        function ownerLogin() {
+            let pass = prompt("Доступ владельца. Введите ключ:");
+            if (pass === "29O72O1O") { 
+                switchScreen('screen-owner');
+            } else if (pass !== null) {
+                alert("Вход заблокирован.");
+            }
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        let lastCalculatedReceipt = null;
+
+        function generateReceipt() {
+            const products = document.getElementById('products-input').value.trim();
+            const food = parseFloat(document.getElementById('food-price').value) || 0;
+            const courierFee = 1.00;
+            const total = food + courierFee;
+            const cashInput = document.getElementById('cash-change').value;
+            const payMethod = document.getElementById('payment-method').value;
+
+            if (!products) return alert("Напишите, что именно нужно купить!");
+            if (food <= 0) return alert("Укажите примерную стоимость еды!");
+
+            let changeText = "0.00 BYN (ПОД РАСЧЕТ)";
+            let rawChange = 0;
+
+            if (cashInput) {
+                const cash = parseFloat(cashInput);
+                rawChange = cash - total;
+                if (rawChange > 0) {
+                    changeText = `${rawChange.toFixed(2)} BYN (ПРИНЕСТИ ОБЯЗАТЕЛЬНО!)`;
+                } else if (rawChange < 0) {
+                    return alert("Введенная купюра меньше стоимости заказа с доставкой!");
                 }
             }
+
+            lastCalculatedReceipt = {
+                customerName: globalUserData.name,
+                customerGroup: globalUserData.group,
+                products: products,
+                foodPrice: food.toFixed(2),
+                deliveryPrice: courierFee.toFixed(2),
+                totalPrice: total.toFixed(2),
+                changeNeeded: cashInput ? rawChange.toFixed(2) : "0.00",
+                paymentMethod: payMethod
+            };
+
+            let receiptHtml = `
+                <div style="text-align:center;font-weight:bold;margin-bottom:12px;letter-spacing:1px;">*** ХАБЗА-ПРОМ ЧЕК ***</div>
+                <div class="receipt-line"><span>ЗАКАЗЧИК:</span> <span>${globalUserData.name} (Гр. ${globalUserData.group})</span></div>
+                <div class="receipt-line"><span>ОПЛАТА:</span> <span>${payMethod}</span></div>
+                <hr style="border: dashed 1px #000; margin: 10px 0;">
+                <div style="font-size:13px; margin-bottom:8px; word-wrap: break-word;"><strong>ТОВАРЫ:</strong> ${products}</div>
+                <div class="receipt-line"><span>ПРОДУКТЫ:</span> <span>${food.toFixed(2)} BYN</span></div>
+                <div class="receipt-line"><span>ДОСТАВКА:</span> <span>${courierFee.toFixed(2)} BYN</span></div>
+                <div class="receipt-line" style="font-weight:bold; font-size:15px; margin-top:5px; border-top:1px solid #000; padding-top:5px;"><span>ИТОГО К ОПЛАТЕ:</span> <span>${total.toFixed(2)} BYN</span></div>
+                <hr style="border: dashed 1px #000; margin: 10px 0;">
+                <div class="receipt-line" style="font-weight:bold;"><span>СДАЧА:</span> <span style="text-align:right; font-size:13px; color:#d63031;">${changeText}</span></div>
+                <div style="text-align:center;font-size:10px;margin-top:12px;color:#555;">ТРЕБУЙТЕ БУМАЖНЫЙ ЧЕК ИЗ МАГАЗИНА!</div>
+            `;
+            
+            document.getElementById('final-receipt').innerHTML = receiptHtml;
+            document.getElementById('receipt-container').style.display = 'block';
         }
 
-        function finishRegistration() {
-            if (!currentRole) return alert("Выберите роль!");
-            document.getElementById('registration-screen').style.display = 'none';
-            document.getElementById('main-interface').style.display = 'block';
-            
-            if (isAdmin) {
-                document.getElementById('admin-tag').style.display = 'block';
-                document.getElementById('admin-view').style.display = 'block';
-                document.getElementById('user-role-display').innerText = 'Управление';
-            } else if (currentRole === 'customer') {
-                document.getElementById('customer-view').style.display = 'block';
+        function sendOrderToBot() {
+            if (!lastCalculatedReceipt) return;
+
+            const messageForRunners = `🔔 *Новый заказ в Хабза-Пром!*\n\n` +
+                                     `👤 *Покупатель:* ${lastCalculatedReceipt.customerName} (Группа ${lastCalculatedReceipt.customerGroup})\n` +
+                                     `🛒 *Что купить:* ${lastCalculatedReceipt.products}\n` +
+                                     `💰 *Сумма за еду:* ${lastCalculatedReceipt.foodPrice} BYN\n` +
+                                     `💵 *Плата бегуну:* ${lastCalculatedReceipt.deliveryPrice} BYN\n` +
+                                     `💳 *Способ оплаты:* ${lastCalculatedReceipt.paymentMethod}\n` +
+                                     `🔥 *Сдача курьера:* ${lastCalculatedReceipt.changeNeeded > 0 ? lastCalculatedReceipt.changeNeeded + ' BYN (ПРИНЕСТИ ОБЯЗАТЕЛЬНО)' : 'Без сдачи'}\n\n` +
+                                     `*Итого у покупателя на руках:* ${lastCalculatedReceipt.totalPrice} BYN`;
+
+            const webAppData = {
+                action: "new_order",
+                text: messageForRunners,
+                rawDetails: lastCalculatedReceipt
+            };
+
+            if (tg) {
+                tg.sendData(JSON.stringify(webAppData));
+                tg.close();
             } else {
-                document.getElementById('runner-view').style.display = 'block';
+                alert("Ошибка: Отправка работает только внутри Telegram! Данные:\n\n" + messageForRunners);
             }
         }
-
-        function sendOrder() { alert("Отправлено!"); }
     </script>
 </body>
 </html>
